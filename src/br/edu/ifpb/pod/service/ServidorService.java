@@ -23,7 +23,6 @@ import br.edu.ifpb.pod.bean.ChatMessage.Action;
 
 //import sun.awt.windows.ThemeReader;
 
-
 public class ServidorService {
 
     private ServerSocket serverSocket;
@@ -92,18 +91,31 @@ public class ServidorService {
                     } else if (messageText.startsWith("send")) {
                     	String[] messageSplit = messageText.split(" ");
  
-                    	if (messageSplit[1].equals("-user")) {
+                    	if (messageSplit[1].equals("-user") && messageSplit.length > 3) {
                     		Set<String> chaves = mapOnlines.keySet();
                     		
-                    		message.setAction(Action.SEND_ONE);                    		
+                    		message.setAction(Action.SEND_ONE);   
+                    		Boolean clienteExiste = false;
                     		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
                                 if (kv.getKey().equals(messageSplit[2])) {
-                                	sendOne(message, messageSplit);
+                                	clienteExiste = true;
                                 }
                     		}    
                     		
+                    		if(clienteExiste) {
+                    			sendOne(message, messageSplit);
+                    		} else {
+                    			message.setText("command_erro_222");
+                        		send(message, output);
+                    		}
                     		
+                    	} else {
+//                    		ChatMessage message = new ChatMessage();
+//                    		message.setAction(Action.COMMAND_ERRO);
+                    		message.setText("command_erro_111");
+                    		send(message, output);
                     	}
+                    	
 //                        sendOne(message);
                     } else if (action.equals(Action.SEND_ALL)) {
                     	String[] textSplit = message.getText().split(" ");
@@ -146,7 +158,7 @@ public class ServidorService {
 
     private boolean connect(ChatMessage message, ObjectOutputStream output) {
         if (mapOnlines.size() == 0) {
-        	System.out.println("== 0");
+        	System.out.println("PRIMEIRO CLIENTE");
             message.setText("YES");
             send(message, output);
             return true;
@@ -179,7 +191,14 @@ public class ServidorService {
 
     private void send(ChatMessage message, ObjectOutputStream output) {
         try {
-            output.writeObject(message);
+        	if (message.getText().equals("command_erro_111")) {
+        		message.setAction(Action.COMMAND_ERRO);
+        	} else if (message.getText().equals("command_erro_999")) {
+        		message.setAction(Action.COMMAND_ERRO);
+        	} else {
+        		output.writeObject(message);
+        	}
+           
         } catch (IOException ex) {
             Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -214,33 +233,6 @@ public class ServidorService {
     }
 
     private void sendAll(ChatMessage message) {
-//    	String[] textSplit = message.getText().split(" ");
-//    	
-//    	if (message.getText().startsWith("rename") && textSplit.length == 2) {
-//    		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-//    			message.setName(textSplit[1]);
-//            	message.setText("");
-//            	message.setAction(Action.SEND_ONE);
-//                try {
-//                    kv.getValue().writeObject(message);
-//                } catch (IOException ex) {
-//                    Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//        	}
-//    	} else {
-//    		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-//	    		if (!kv.getKey().equals(message.getName())) {
-//	                message.setAction(Action.SEND_ONE);
-//	                try {
-//	                    kv.getValue().writeObject(message);
-//	                } catch (IOException ex) {
-//	                    Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
-//	                }
-//	            }
-//    		}
-//    	}
-    	
-    	
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
         	String[] textSplit = message.getText().split(" ");
         	
@@ -262,15 +254,18 @@ public class ServidorService {
     private void sendOnlines(ChatMessage message, ObjectOutputStream output) {
 //    	System.out.println("qqqqqqqqqqqq");
         Set<String> setNames = new HashSet<String>();
+        
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
             setNames.add(kv.getKey());
         }
+        
         if(message.getText().equals("list")) {
         	message.setSetOnlines(setNames);
         	message.setAction(Action.USERS_ONLINE);
             send(message, output);
             return;
         }
+        
         System.out.println("SSSSSS" + setNames);
         message = new ChatMessage();
         message.setAction(Action.USERS_ONLINE);
