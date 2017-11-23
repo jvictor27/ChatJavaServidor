@@ -88,36 +88,7 @@ public class ServidorService {
                     	}
                     	String[] vazio = new String[0];
                         sendOne(message, vazio);
-                    } else if (messageText.startsWith("send")) {
-                    	String[] messageSplit = messageText.split(" ");
- 
-                    	if (messageSplit[1].equals("-user") && messageSplit.length > 3) {
-                    		Set<String> chaves = mapOnlines.keySet();
-                    		
-                    		message.setAction(Action.SEND_ONE);   
-                    		Boolean clienteExiste = false;
-                    		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-                                if (kv.getKey().equals(messageSplit[2])) {
-                                	clienteExiste = true;
-                                }
-                    		}    
-                    		
-                    		if(clienteExiste) {
-                    			sendOne(message, messageSplit);
-                    		} else {
-                    			message.setText("command_erro_222");
-                        		send(message, output);
-                    		}
-                    		
-                    	} else {
-//                    		ChatMessage message = new ChatMessage();
-//                    		message.setAction(Action.COMMAND_ERRO);
-                    		message.setText("command_erro_111");
-                    		send(message, output);
-                    	}
-                    	
-//                        sendOne(message);
-                    } else if (action.equals(Action.SEND_ALL)) {
+                    }  else if (action.equals(Action.SEND_ALL)) {
                     	String[] textSplit = message.getText().split(" ");
                     	if(message.getText().startsWith("rename") && textSplit.length == 2) {
 
@@ -125,8 +96,7 @@ public class ServidorService {
 //                    		message.setText(nameSplit[0] + "mudou o nome para -> " + nameSplit[1]);
 //                    		Set<String> setNames = new HashSet<String>();
                     		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-                    			System.out.println("OOOOOOIIIIIIIIIIUUUUUUUUUUUU");
-                    			System.out.println(nameSplit[0]);
+
                                 if(kv.getKey().equals(nameSplit[0])) {
                                 	mapOnlines.put(nameSplit[1], mapOnlines.get(nameSplit[0]));
 //                                	kv.getKey().replaceAll(nameSplit[0], nameSplit[1]);
@@ -193,8 +163,10 @@ public class ServidorService {
         try {
         	if (message.getText().equals("command_erro_111")) {
         		message.setAction(Action.COMMAND_ERRO);
+        		output.writeObject(message);
         	} else if (message.getText().equals("command_erro_999")) {
         		message.setAction(Action.COMMAND_ERRO);
+        		output.writeObject(message);
         	} else {
         		output.writeObject(message);
         	}
