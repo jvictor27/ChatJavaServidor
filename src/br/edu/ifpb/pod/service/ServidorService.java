@@ -23,9 +23,7 @@ import br.edu.ifpb.pod.bean.ChatMessage.Action;
 
 //import sun.awt.windows.ThemeReader;
 
-/**
- * @author João Victor
- */
+
 public class ServidorService {
 
     private ServerSocket serverSocket;
@@ -73,53 +71,33 @@ public class ServidorService {
                 while ((message = (ChatMessage) input.readObject()) != null) {
                 	String messageText = message.getText();
                     
-                    if(!message.getAction().equals(Action.CONNECT) && !message.getAction().equals(Action.DISCONNECT)) {
-                    	if(message.getText().equals("bye")) {
-//                            disconnect(message, output);
-//                            sendOnlines();
-//                            return;
-                    		message.setAction(Action.DISCONNECT);
-                    	} 
-//                    	else if (messageText.startsWith("rename")) {
-//                    		message.setAction(Action.RENAME);
-//                    	}
-                    }
-                	System.out.println(message.getAction());
                     Action action = message.getAction();
 
                     if (action.equals(Action.CONNECT)) {
                         boolean isConnect = connect(message, output);
                         if (isConnect) {
                             mapOnlines.put(message.getName(), output);
-                            sendOnlines();
+                            sendOnlines(message, output);
                         }
                     } else if (action.equals(Action.DISCONNECT)) {
-                    	System.out.println("AQAQAQAQ");
                         disconnect(message, output);
-                        sendOnlines();
+                        sendOnlines(message, output);
                         return;
                     } else if (action.equals(Action.SEND_ONE)) {
+                    	if (messageText.equals("list")) {
+                    		sendOnlines(message, output);
+                    	}
                     	String[] vazio = new String[0];
                         sendOne(message, vazio);
                     } else if (messageText.startsWith("send")) {
                     	String[] messageSplit = messageText.split(" ");
-//                    	for(String msg : messageSplit){
-//                            System.out.println(msg);
-//                    	} 
+ 
                     	if (messageSplit[1].equals("-user")) {
-//                    		System.out.println(mapOnlines);
                     		Set<String> chaves = mapOnlines.keySet();
-//                    		
-                    		for(String chave : chaves){
-//                              System.out.println(chave);
-                              
-                    		}
-                    		message.setAction(Action.SEND_ONE);
-//                    		System.out.println(messageSplit.length);
                     		
+                    		message.setAction(Action.SEND_ONE);                    		
                     		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
                                 if (kv.getKey().equals(messageSplit[2])) {
-//                                	System.out.println(kv.getKey() + messageSplit[2]);
                                 	sendOne(message, messageSplit);
                                 }
                     		}    
@@ -128,6 +106,29 @@ public class ServidorService {
                     	}
 //                        sendOne(message);
                     } else if (action.equals(Action.SEND_ALL)) {
+                    	String[] textSplit = message.getText().split(" ");
+                    	if(message.getText().startsWith("rename") && textSplit.length == 2) {
+
+                    		String[] nameSplit = message.getName().split(" ");
+//                    		message.setText(nameSplit[0] + "mudou o nome para -> " + nameSplit[1]);
+//                    		Set<String> setNames = new HashSet<String>();
+                    		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
+                    			System.out.println("OOOOOOIIIIIIIIIIUUUUUUUUUUUU");
+                    			System.out.println(nameSplit[0]);
+                                if(kv.getKey().equals(nameSplit[0])) {
+                                	mapOnlines.put(nameSplit[1], mapOnlines.get(nameSplit[0]));
+//                                	kv.getKey().replaceAll(nameSplit[0], nameSplit[1]);
+                                	mapOnlines.remove(nameSplit[0]);
+                                	message.setName(nameSplit[1]);
+                                	System.out.println("AQUI" + mapOnlines.entrySet());
+                                	sendOnlines(message, output);
+                                	return;
+                                }
+                            }
+                    		
+                    		
+                    		
+                    	}
                         sendAll(message);
                     }
                 }
@@ -135,7 +136,7 @@ public class ServidorService {
                 ChatMessage cm = new ChatMessage();
                 cm.setName(message.getName());
                 disconnect(cm, output);
-                sendOnlines();
+                sendOnlines(message, output);
                 System.out.println(message.getName() + " deixou o chat!");
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
@@ -145,16 +146,19 @@ public class ServidorService {
 
     private boolean connect(ChatMessage message, ObjectOutputStream output) {
         if (mapOnlines.size() == 0) {
+        	System.out.println("== 0");
             message.setText("YES");
             send(message, output);
             return true;
         }
 
         if (mapOnlines.containsKey(message.getName())) {
+        	System.out.println("segund if");
             message.setText("NO");
             send(message, output);
             return false;
         } else {
+        	System.out.println("else");
             message.setText("YES");
             send(message, output);
             return true;
@@ -192,10 +196,7 @@ public class ServidorService {
         					message.setText(message.getText() + " " + (String) command[i]);
         				}
         			}
-//        			for (String msg : command) {
-////        				msg.
-//        				message.setText(message.getText() + " " + msg);
-//        			}
+
         			try {
                         kv.getValue().writeObject(message);
                     } catch (IOException ex) {
@@ -213,28 +214,69 @@ public class ServidorService {
     }
 
     private void sendAll(ChatMessage message) {
+//    	String[] textSplit = message.getText().split(" ");
+//    	
+//    	if (message.getText().startsWith("rename") && textSplit.length == 2) {
+//    		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
+//    			message.setName(textSplit[1]);
+//            	message.setText("");
+//            	message.setAction(Action.SEND_ONE);
+//                try {
+//                    kv.getValue().writeObject(message);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//        	}
+//    	} else {
+//    		for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
+//	    		if (!kv.getKey().equals(message.getName())) {
+//	                message.setAction(Action.SEND_ONE);
+//	                try {
+//	                    kv.getValue().writeObject(message);
+//	                } catch (IOException ex) {
+//	                    Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
+//	                }
+//	            }
+//    		}
+//    	}
+    	
+    	
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
+        	String[] textSplit = message.getText().split(" ");
+        	
             if (!kv.getKey().equals(message.getName())) {
                 message.setAction(Action.SEND_ONE);
+                if(message.getText().startsWith("rename") && textSplit.length == 2) {
+                	message.setName(textSplit[1]);
+                	message.setText("");
+                }
                 try {
                     kv.getValue().writeObject(message);
                 } catch (IOException ex) {
                     Logger.getLogger(ServidorService.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            }
+            } 
         }
     }
 
-    private void sendOnlines() {
+    private void sendOnlines(ChatMessage message, ObjectOutputStream output) {
 //    	System.out.println("qqqqqqqqqqqq");
         Set<String> setNames = new HashSet<String>();
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
             setNames.add(kv.getKey());
         }
-
-        ChatMessage message = new ChatMessage();
+        if(message.getText().equals("list")) {
+        	message.setSetOnlines(setNames);
+        	message.setAction(Action.USERS_ONLINE);
+            send(message, output);
+            return;
+        }
+        System.out.println("SSSSSS" + setNames);
+        message = new ChatMessage();
         message.setAction(Action.USERS_ONLINE);
         message.setSetOnlines(setNames);
+        
+        
 
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
             message.setName(kv.getKey());

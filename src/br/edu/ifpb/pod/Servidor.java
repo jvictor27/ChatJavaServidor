@@ -6,10 +6,7 @@ package br.edu.ifpb.pod;
 
 import br.edu.ifpb.pod.service.ServidorService;
 
-/**
- *
- * @author Marcio Ballem
- */
+
 public class Servidor {
 
     /**

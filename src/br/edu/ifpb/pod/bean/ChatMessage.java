@@ -8,10 +8,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- *
- * @author Marcio Ballem
- */
+
 public class ChatMessage implements Serializable {
     
     private String name;
