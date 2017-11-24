@@ -128,19 +128,19 @@ public class ServidorService {
 
     private boolean connect(ChatMessage message, ObjectOutputStream output) {
         if (mapOnlines.size() == 0) {
-        	System.out.println("PRIMEIRO CLIENTE");
+        	
             message.setText("YES");
             send(message, output);
             return true;
         }
 
         if (mapOnlines.containsKey(message.getName())) {
-        	System.out.println("segund if");
+        	
             message.setText("NO");
             send(message, output);
             return false;
         } else {
-        	System.out.println("else");
+        	
             message.setText("YES");
             send(message, output);
             return true;
@@ -224,7 +224,6 @@ public class ServidorService {
     }
 
     private void sendOnlines(ChatMessage message, ObjectOutputStream output) {
-//    	System.out.println("qqqqqqqqqqqq");
         Set<String> setNames = new HashSet<String>();
         
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
@@ -238,7 +237,6 @@ public class ServidorService {
             return;
         }
         
-        System.out.println("SSSSSS" + setNames);
         message = new ChatMessage();
         message.setAction(Action.USERS_ONLINE);
         message.setSetOnlines(setNames);
